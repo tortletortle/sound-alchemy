@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EchoAlchemy</title><style>*{box-sizing:border-box}body{margin:0;background:#03060c;color:#d8e6ef;font:14px system-ui}canvas{position:fixed;width:100%;height:100%}header{position:fixed;top:28px;left:30px;letter-spacing:4px}h1{font-size:24px;font-weight:300;margin:0}small{color:#8ba9b9}aside{position:fixed;bottom:24px;left:24px;right:24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select{background:#101c29c9;color:#cdeaff;border:1px solid #42596a;border-radius:8px;padding:12px;cursor:pointer}#status{padding:8px;background:#07111caa}#metrics{position:fixed;right:24px;top:30px;text-align:right;line-height:1.8;color:#9ac6d9;font-variant-numeric:tabular-nums}</style><canvas id="c"></canvas><header><h1>ECHOALCHEMY</h1><small>声景炼金术 / LIVE GENERATIVE SPACE</small></header><div id="metrics"></div><aside><button id="mic">开启麦克风</button><button id="demo">模拟声景</button><button id="music">环境音乐：关</button><select id="theme"><option value="0">深空回响</option><option value="1">液态宇宙</option><option value="2">混沌结晶</option></select><button id="calm">低刺激模式：关</button><span id="status">模拟声景 · 本地运行</span></aside><script>
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EchoAlchemy</title><style>*{box-sizing:border-box}body{margin:0;background:#03060c;color:#d8e6ef;font:14px system-ui}canvas{position:fixed;width:100%;height:100%}header{position:fixed;top:28px;left:30px;letter-spacing:4px}h1{font-size:24px;font-weight:300;margin:0}small{color:#8ba9b9}aside{position:fixed;bottom:24px;left:24px;right:24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,select{background:#101c29c9;color:#cdeaff;border:1px solid #42596a;border-radius:8px;padding:12px;cursor:pointer}#status{padding:8px;background:#07111caa}#metrics{position:fixed;right:24px;top:30px;text-align:right;line-height:1.8;color:#9ac6d9;font-variant-numeric:tabular-nums}header{top:22px;left:26px;letter-spacing:6px}h1{font-size:19px;font-weight:400}small{font-size:10px;letter-spacing:2px}aside{left:50%;right:auto;bottom:20px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);justify-content:center;gap:4px;padding:8px 14px;background:#091324c9;border:1px solid #b5c9ff20;border-radius:28px;backdrop-filter:blur(14px)}button,select{border:0;background:transparent;font-size:12px;letter-spacing:1px;padding:10px 12px}button:hover,select:hover{background:#9fcaff18}select option{background:#101c29}button:focus-visible,select:focus-visible{outline:2px solid #66d9ed}#status{font-size:10px;background:transparent;color:#a1bdcd;padding:5px}#metrics{font-size:10px;letter-spacing:2px;top:25px;right:26px}@media(max-width:600px){header{left:14px;top:14px}h1{font-size:15px;letter-spacing:3px}small{font-size:9px}#metrics{top:58px;right:14px;font-size:9px}aside{bottom:12px;width:calc(100% - 20px);border-radius:20px}button,select{padding:9px 7px;font-size:11px}}</style><canvas id="c"></canvas><header><h1>ECHOALCHEMY</h1><small>声景炼金术 / LIVE GENERATIVE SPACE</small></header><div id="metrics"></div><aside><button id="mic">开启麦克风</button><button id="demo">模拟声景</button><button id="music">环境音乐：关</button><select id="theme"><option value="0">深空回响</option><option value="1">液态宇宙</option><option value="2">混沌结晶</option></select><button id="calm">低刺激模式：关</button><span id="status">模拟声景 · 本地运行</span></aside><script>
 const $=id=>document.getElementById(id),canvas=$('c'),gl=canvas.getContext('webgl',{antialias:false});
 if(!gl){$('status').textContent='此设备不支持 WebGL';throw Error('WebGL unavailable')}
 const vertex='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
@@ -8,7 +8,37 @@ precision highp float;
 #else
 precision mediump float;
 #endif
-uniform vec2 res;uniform float travel,t,energy,slow,mid,hi,hit,theme,calm;float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 p=(2.*gl_FragCoord.xy-res)/res.y;float r=length(p),a=atan(p.y,p.x);float z=1./max(r,.045);float phase=z*2.4-travel;float twist=a+.25*sin(z*.6+t*.2)+mid*.4;float sides=theme<.5?6.:theme<1.5?10.:3.;float ring=exp(-9.*abs(sin(phase+sin(twist*sides)*(.16+mid*.25))));float ribs=exp(-14.*abs(sin(twist*sides*.5+z*.13)));vec3 base=mix(vec3(.08,.47,.8),vec3(.7,.18,.65),clamp(slow+.2*sin(z),0.,1.));if(theme> .5&&theme<1.5)base=vec3(.04,.72,.65);if(theme>1.5)base=vec3(.74,.39,.12);vec2 grid=vec2(twist*24.,phase*4.);vec2 cell=floor(grid);vec2 f=fract(grid)-.5;float star=exp(-90.*dot(f,f))*step(.88-hi*.2,hash(cell));float light=(ring*.65+ribs*.25+star*(.7+hi))*(.45+energy*.65);float wave=exp(-15.*abs(sin(z*1.4-t*1.2)))*hit*.23*(1.-calm);vec3 col=base*(light+wave)*smoothstep(.03,.24,r)+vec3(.008,.012,.025);col*=1.-.45*smoothstep(.7,1.7,r);gl_FragColor=vec4(clamp(col,0.,.82-.2*calm),1.);}`;
+uniform vec2 res;uniform float travel,t,energy,slow,mid,hi,hit,theme,calm;
+float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){return .57*noise(p)+.29*noise(p*2.03+8.)+.14*noise(p*4.07-3.);}
+void main(){
+ vec2 p=(2.*gl_FragCoord.xy-res)/max(res.y,1.);float r=length(p);vec2 dir=p/max(r,.0001);
+ float z=2.1/(r+.16),a=atan(p.y,p.x+.00001),v=z-travel*.62;
+ float twist=a+.31*z+.22*sin(z*.75+t*.13)+mid*.25;
+ vec2 polar=vec2(cos(twist),sin(twist));
+ vec3 cyan=vec3(.09,.55,.91),violet=vec3(.42,.18,.85),gold=vec3(1.,.56,.19);
+ if(theme>.5&&theme<1.5){cyan=vec3(.04,.64,.57);violet=vec3(.08,.23,.58);}
+ if(theme>1.5){cyan=vec3(.42,.26,.85);violet=vec3(.93,.26,.12);}
+ float fog=fbm(polar*3.1+vec2(v*.45,v*.22));
+ vec3 col=vec3(.006,.012,.032)+mix(cyan,violet,fog)*fog*.10;
+ for(int i=0;i<3;i++){
+  float k=float(i),s=v*2.7+k*2.094+.76*sin(twist*3.+k*.8)+.32*sin(twist*6.-v*.4)+.38*(fog-.5);
+  float d=abs(sin(s));float veil=exp(-d*d*(6.+k*2.));float edge=exp(-d*(24.+k*6.));
+  float fiber=.38+.62*pow(.5+.5*sin(twist*32.+v*13.+k*8.),4.);
+  float luminous=.35+.65*fbm(polar*5.+vec2(v*.7,k*13.));
+  vec3 ink=mix(cyan,violet,.5+.5*sin(twist*2.+v*.65+k+slow));
+  ink=mix(ink,gold,pow(max(0.,sin(twist*3.-v*.7+k)),12.)*.75);
+  col+=ink*(veil*.17*fiber+edge*.42)*luminous*(.65+energy*.55);
+ }
+ vec2 grid=polar*(14.+z*2.)+vec2(v*2.3,v*.8);vec2 cell=floor(grid),f=fract(grid)-.5;
+ float h=hash(cell),dust=exp(-dot(f,f)*85.)*step(.84-hi*.07,h);
+ col+=mix(cyan,gold,step(.95,h))*dust*.65;
+ float pulse=exp(-9.*abs(sin(v*2.-t*.7)))*hit*.10*(1.-calm);
+ col+=cyan*pulse;col*=smoothstep(.015,.36,r)*(1.-.40*smoothstep(.85,2.,r));
+ col=1.-exp(-col*1.45);col*=1.-.25*calm;
+ gl_FragColor=vec4(col,1.);
+}`;
 function shader(type,src){let s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s}let prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,vertex));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(prog));gl.useProgram(prog);let b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);let loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);let U={};for(let n of ['res','travel','t','energy','slow','mid','hi','hit','theme','calm'])U[n]=gl.getUniformLocation(prog,n);
 let travel=0;function advanceTravel(phase,dt,memory,calm){return phase+dt*(.6+.7*memory)*(1-.65*calm)}
 function resetAcoustics(){return {floor:null,envelope:0,warm:0,cooldown:0,armed:true,pulse:0}}
