@@ -2,12 +2,12 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const html=fs.readFileSync(require('node:path').join(__dirname,'..','index.html'),'utf8');
-const js=html.match(/<script>([\\s\\S]*?)<\\/script>/)[1];
+const js=html.match(/<script>([\s\S]*?)<\/script>/)[1];
 new vm.Script(js);
 const begin=js.indexOf('// AME_BEGIN');
 const end=js.indexOf('// AME_END',begin)+'// AME_END'.length;
 assert.ok(begin>=0&&end>begin,'AME source markers must exist');
-const api=vm.runInNewContext(js.slice(begin,end)+'\\n({createMusicState,musicFrame,MUSIC_SCALE})');
+const api=vm.runInNewContext(js.slice(begin,end)+'\n({createMusicState,musicFrame,MUSIC_SCALE})');
 function simulate(hz,input,duration=90,seed=12345){
  const state=api.createMusicState(0,seed),events=[];
  for(let i=0;i<=hz*duration;i++){const r=api.musicFrame(state,input,i/hz);if(r.event)events.push(r.event)}
@@ -31,5 +31,5 @@ const rates=[30,60,120].map(hz=>simulate(hz,{energy:.5,mid:.35,high:.2,hit:.1,ca
 assert.ok(Math.max(...rates.map(x=>x.events.length))-Math.min(...rates.map(x=>x.events.length))<=1,'step count should be frame-rate independent');
 const repeat=simulate(60,activeInput);
 assert.deepEqual(active.events.map(e=>[e.step,e.chordIndex,e.noteMidi]),repeat.events.map(e=>[e.step,e.chordIndex,e.noteMidi]),'same seed and input must be deterministic');
-assert.ok(active.events.some(e=>e.chordIndex===0)&&active.events.some(e=>e.chordIndex===1)&&active.events.some(e=>e.chordIndex===2)&&active.events.some(e=>e.chordIndex===3),'four-chord progression should cycle');
+assert.ok([0,1,2,3].every(i=>active.events.some(e=>e.chordIndex===i)),'four-chord progression should cycle');
 console.log(JSON.stringify({status:'PASS',calmBpm:+calm.bpm.toFixed(2),activeBpm:+active.bpm.toFixed(2),activeEvents:active.events.length,melodyNotes:active.events.filter(e=>e.noteMidi!==null).length,frameRateEvents:rates.map((x,i)=>({hz:[30,60,120][i],count:x.events.length,bpm:+x.bpm.toFixed(2)}))},null,2));
