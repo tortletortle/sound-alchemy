@@ -30,6 +30,6 @@ for(const e of active.events){
 const rates=[30,60,120].map(hz=>simulate(hz,{energy:.5,mid:.35,high:.2,hit:.1,calm:false,theme:1},60));
 assert.ok(Math.max(...rates.map(x=>x.events.length))-Math.min(...rates.map(x=>x.events.length))<=1,'step count should be frame-rate independent');
 const repeat=simulate(60,activeInput);
-assert.deepEqual(active.events.map(e=>[e.step,e.chordIndex,e.noteMidi]),repeat.events.map(e=>[e.step,e.chordIndex,e.noteMidi]),'same seed and input must be deterministic');
+assert.equal(JSON.stringify(active.events.map(e=>[e.step,e.chordIndex,e.noteMidi])),JSON.stringify(repeat.events.map(e=>[e.step,e.chordIndex,e.noteMidi])),'same seed and input must be deterministic');
 assert.ok([0,1,2,3].every(i=>active.events.some(e=>e.chordIndex===i)),'four-chord progression should cycle');
 console.log(JSON.stringify({status:'PASS',calmBpm:+calm.bpm.toFixed(2),activeBpm:+active.bpm.toFixed(2),activeEvents:active.events.length,melodyNotes:active.events.filter(e=>e.noteMidi!==null).length,frameRateEvents:rates.map((x,i)=>({hz:[30,60,120][i],count:x.events.length,bpm:+x.bpm.toFixed(2)}))},null,2));
